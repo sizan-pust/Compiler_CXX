@@ -10,6 +10,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 add_executable(compiler
     src/main.cpp
     src/lexer.cpp
+    src/parser.cpp
+    src/semantic.cpp
+    
 )
 
 target_include_directories(compiler PRIVATE src)

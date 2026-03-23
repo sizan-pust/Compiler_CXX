@@ -10,5 +10,17 @@
   "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\lexer.cpp.obj -c D:\\compiler\\src\\lexer.cpp",
   "file": "D:/compiler/src/lexer.cpp",
   "output": "CMakeFiles/compiler.dir/src/lexer.cpp.obj"
+},
+{
+  "directory": "D:/compiler/build",
+  "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\parser.cpp.obj -c D:\\compiler\\src\\parser.cpp",
+  "file": "D:/compiler/src/parser.cpp",
+  "output": "CMakeFiles/compiler.dir/src/parser.cpp.obj"
+},
+{
+  "directory": "D:/compiler/build",
+  "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\semantic.cpp.obj -c D:\\compiler\\src\\semantic.cpp",
+  "file": "D:/compiler/src/semantic.cpp",
+  "output": "CMakeFiles/compiler.dir/src/semantic.cpp.obj"
 }
 ]

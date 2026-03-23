@@ -176,6 +176,54 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/parser.obj: src/parser.cpp.obj
+.PHONY : src/parser.obj
+
+# target to build an object file
+src/parser.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/parser.cpp.obj
+.PHONY : src/parser.cpp.obj
+
+src/parser.i: src/parser.cpp.i
+.PHONY : src/parser.i
+
+# target to preprocess a source file
+src/parser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/parser.cpp.i
+.PHONY : src/parser.cpp.i
+
+src/parser.s: src/parser.cpp.s
+.PHONY : src/parser.s
+
+# target to generate assembly for a file
+src/parser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/parser.cpp.s
+.PHONY : src/parser.cpp.s
+
+src/semantic.obj: src/semantic.cpp.obj
+.PHONY : src/semantic.obj
+
+# target to build an object file
+src/semantic.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/semantic.cpp.obj
+.PHONY : src/semantic.cpp.obj
+
+src/semantic.i: src/semantic.cpp.i
+.PHONY : src/semantic.i
+
+# target to preprocess a source file
+src/semantic.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/semantic.cpp.i
+.PHONY : src/semantic.cpp.i
+
+src/semantic.s: src/semantic.cpp.s
+.PHONY : src/semantic.s
+
+# target to generate assembly for a file
+src/semantic.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/semantic.cpp.s
+.PHONY : src/semantic.cpp.s
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -191,6 +239,12 @@ help:
 	@echo ... src/main.obj
 	@echo ... src/main.i
 	@echo ... src/main.s
+	@echo ... src/parser.obj
+	@echo ... src/parser.i
+	@echo ... src/parser.s
+	@echo ... src/semantic.obj
+	@echo ... src/semantic.i
+	@echo ... src/semantic.s
 .PHONY : help
 
 
