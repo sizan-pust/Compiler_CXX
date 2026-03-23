@@ -1,0 +1,14 @@
+[
+{
+  "directory": "D:/compiler/build",
+  "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\main.cpp.obj -c D:\\compiler\\src\\main.cpp",
+  "file": "D:/compiler/src/main.cpp",
+  "output": "CMakeFiles/compiler.dir/src/main.cpp.obj"
+},
+{
+  "directory": "D:/compiler/build",
+  "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\lexer.cpp.obj -c D:\\compiler\\src\\lexer.cpp",
+  "file": "D:/compiler/src/lexer.cpp",
+  "output": "CMakeFiles/compiler.dir/src/lexer.cpp.obj"
+}
+]
