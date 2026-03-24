@@ -131,12 +131,60 @@ CMakeFiles/compiler.dir/src/semantic.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/compiler.dir/src/semantic.cpp.s"
 	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\compiler\src\semantic.cpp -o CMakeFiles\compiler.dir\src\semantic.cpp.s
 
+CMakeFiles/compiler.dir/src/icg.cpp.obj: CMakeFiles/compiler.dir/flags.make
+CMakeFiles/compiler.dir/src/icg.cpp.obj: CMakeFiles/compiler.dir/includes_CXX.rsp
+CMakeFiles/compiler.dir/src/icg.cpp.obj: D:/compiler/src/icg.cpp
+CMakeFiles/compiler.dir/src/icg.cpp.obj: CMakeFiles/compiler.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\compiler\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/compiler.dir/src/icg.cpp.obj"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/icg.cpp.obj -MF CMakeFiles\compiler.dir\src\icg.cpp.obj.d -o CMakeFiles\compiler.dir\src\icg.cpp.obj -c D:\compiler\src\icg.cpp
+
+CMakeFiles/compiler.dir/src/icg.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/compiler.dir/src/icg.cpp.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E D:\compiler\src\icg.cpp > CMakeFiles\compiler.dir\src\icg.cpp.i
+
+CMakeFiles/compiler.dir/src/icg.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/compiler.dir/src/icg.cpp.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\compiler\src\icg.cpp -o CMakeFiles\compiler.dir\src\icg.cpp.s
+
+CMakeFiles/compiler.dir/src/optimizer.cpp.obj: CMakeFiles/compiler.dir/flags.make
+CMakeFiles/compiler.dir/src/optimizer.cpp.obj: CMakeFiles/compiler.dir/includes_CXX.rsp
+CMakeFiles/compiler.dir/src/optimizer.cpp.obj: D:/compiler/src/optimizer.cpp
+CMakeFiles/compiler.dir/src/optimizer.cpp.obj: CMakeFiles/compiler.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\compiler\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/compiler.dir/src/optimizer.cpp.obj"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/optimizer.cpp.obj -MF CMakeFiles\compiler.dir\src\optimizer.cpp.obj.d -o CMakeFiles\compiler.dir\src\optimizer.cpp.obj -c D:\compiler\src\optimizer.cpp
+
+CMakeFiles/compiler.dir/src/optimizer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/compiler.dir/src/optimizer.cpp.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E D:\compiler\src\optimizer.cpp > CMakeFiles\compiler.dir\src\optimizer.cpp.i
+
+CMakeFiles/compiler.dir/src/optimizer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/compiler.dir/src/optimizer.cpp.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\compiler\src\optimizer.cpp -o CMakeFiles\compiler.dir\src\optimizer.cpp.s
+
+CMakeFiles/compiler.dir/src/codegen.cpp.obj: CMakeFiles/compiler.dir/flags.make
+CMakeFiles/compiler.dir/src/codegen.cpp.obj: CMakeFiles/compiler.dir/includes_CXX.rsp
+CMakeFiles/compiler.dir/src/codegen.cpp.obj: D:/compiler/src/codegen.cpp
+CMakeFiles/compiler.dir/src/codegen.cpp.obj: CMakeFiles/compiler.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\compiler\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/compiler.dir/src/codegen.cpp.obj"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/codegen.cpp.obj -MF CMakeFiles\compiler.dir\src\codegen.cpp.obj.d -o CMakeFiles\compiler.dir\src\codegen.cpp.obj -c D:\compiler\src\codegen.cpp
+
+CMakeFiles/compiler.dir/src/codegen.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/compiler.dir/src/codegen.cpp.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E D:\compiler\src\codegen.cpp > CMakeFiles\compiler.dir\src\codegen.cpp.i
+
+CMakeFiles/compiler.dir/src/codegen.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/compiler.dir/src/codegen.cpp.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\compiler\src\codegen.cpp -o CMakeFiles\compiler.dir\src\codegen.cpp.s
+
 # Object files for target compiler
 compiler_OBJECTS = \
 "CMakeFiles/compiler.dir/src/main.cpp.obj" \
 "CMakeFiles/compiler.dir/src/lexer.cpp.obj" \
 "CMakeFiles/compiler.dir/src/parser.cpp.obj" \
-"CMakeFiles/compiler.dir/src/semantic.cpp.obj"
+"CMakeFiles/compiler.dir/src/semantic.cpp.obj" \
+"CMakeFiles/compiler.dir/src/icg.cpp.obj" \
+"CMakeFiles/compiler.dir/src/optimizer.cpp.obj" \
+"CMakeFiles/compiler.dir/src/codegen.cpp.obj"
 
 # External object files for target compiler
 compiler_EXTERNAL_OBJECTS =
@@ -145,11 +193,14 @@ D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/src/main.cpp.obj
 D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/src/lexer.cpp.obj
 D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/src/parser.cpp.obj
 D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/src/semantic.cpp.obj
+D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/src/icg.cpp.obj
+D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/src/optimizer.cpp.obj
+D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/src/codegen.cpp.obj
 D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/build.make
 D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/linkLibs.rsp
 D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/objects1.rsp
 D:/compiler/bin/compiler.exe: CMakeFiles/compiler.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\compiler\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable D:\compiler\bin\compiler.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\compiler\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable D:\compiler\bin\compiler.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\compiler.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

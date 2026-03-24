@@ -22,5 +22,23 @@
   "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\semantic.cpp.obj -c D:\\compiler\\src\\semantic.cpp",
   "file": "D:/compiler/src/semantic.cpp",
   "output": "CMakeFiles/compiler.dir/src/semantic.cpp.obj"
+},
+{
+  "directory": "D:/compiler/build",
+  "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\icg.cpp.obj -c D:\\compiler\\src\\icg.cpp",
+  "file": "D:/compiler/src/icg.cpp",
+  "output": "CMakeFiles/compiler.dir/src/icg.cpp.obj"
+},
+{
+  "directory": "D:/compiler/build",
+  "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\optimizer.cpp.obj -c D:\\compiler\\src\\optimizer.cpp",
+  "file": "D:/compiler/src/optimizer.cpp",
+  "output": "CMakeFiles/compiler.dir/src/optimizer.cpp.obj"
+},
+{
+  "directory": "D:/compiler/build",
+  "command": "C:\\MinGW\\bin\\g++.exe  @CMakeFiles/compiler.dir/includes_CXX.rsp -g -std=gnu++1z -Wall -Wextra -o CMakeFiles\\compiler.dir\\src\\codegen.cpp.obj -c D:\\compiler\\src\\codegen.cpp",
+  "file": "D:/compiler/src/codegen.cpp",
+  "output": "CMakeFiles/compiler.dir/src/codegen.cpp.obj"
 }
 ]

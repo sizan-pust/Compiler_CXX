@@ -128,6 +128,54 @@ compiler/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/build
 .PHONY : compiler/fast
 
+src/codegen.obj: src/codegen.cpp.obj
+.PHONY : src/codegen.obj
+
+# target to build an object file
+src/codegen.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/codegen.cpp.obj
+.PHONY : src/codegen.cpp.obj
+
+src/codegen.i: src/codegen.cpp.i
+.PHONY : src/codegen.i
+
+# target to preprocess a source file
+src/codegen.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/codegen.cpp.i
+.PHONY : src/codegen.cpp.i
+
+src/codegen.s: src/codegen.cpp.s
+.PHONY : src/codegen.s
+
+# target to generate assembly for a file
+src/codegen.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/codegen.cpp.s
+.PHONY : src/codegen.cpp.s
+
+src/icg.obj: src/icg.cpp.obj
+.PHONY : src/icg.obj
+
+# target to build an object file
+src/icg.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/icg.cpp.obj
+.PHONY : src/icg.cpp.obj
+
+src/icg.i: src/icg.cpp.i
+.PHONY : src/icg.i
+
+# target to preprocess a source file
+src/icg.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/icg.cpp.i
+.PHONY : src/icg.cpp.i
+
+src/icg.s: src/icg.cpp.s
+.PHONY : src/icg.s
+
+# target to generate assembly for a file
+src/icg.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/icg.cpp.s
+.PHONY : src/icg.cpp.s
+
 src/lexer.obj: src/lexer.cpp.obj
 .PHONY : src/lexer.obj
 
@@ -175,6 +223,30 @@ src/main.s: src/main.cpp.s
 src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
+
+src/optimizer.obj: src/optimizer.cpp.obj
+.PHONY : src/optimizer.obj
+
+# target to build an object file
+src/optimizer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/optimizer.cpp.obj
+.PHONY : src/optimizer.cpp.obj
+
+src/optimizer.i: src/optimizer.cpp.i
+.PHONY : src/optimizer.i
+
+# target to preprocess a source file
+src/optimizer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/optimizer.cpp.i
+.PHONY : src/optimizer.cpp.i
+
+src/optimizer.s: src/optimizer.cpp.s
+.PHONY : src/optimizer.s
+
+# target to generate assembly for a file
+src/optimizer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\compiler.dir\build.make CMakeFiles/compiler.dir/src/optimizer.cpp.s
+.PHONY : src/optimizer.cpp.s
 
 src/parser.obj: src/parser.cpp.obj
 .PHONY : src/parser.obj
@@ -233,12 +305,21 @@ help:
 	@echo ... edit_cache
 	@echo ... rebuild_cache
 	@echo ... compiler
+	@echo ... src/codegen.obj
+	@echo ... src/codegen.i
+	@echo ... src/codegen.s
+	@echo ... src/icg.obj
+	@echo ... src/icg.i
+	@echo ... src/icg.s
 	@echo ... src/lexer.obj
 	@echo ... src/lexer.i
 	@echo ... src/lexer.s
 	@echo ... src/main.obj
 	@echo ... src/main.i
 	@echo ... src/main.s
+	@echo ... src/optimizer.obj
+	@echo ... src/optimizer.i
+	@echo ... src/optimizer.s
 	@echo ... src/parser.obj
 	@echo ... src/parser.i
 	@echo ... src/parser.s

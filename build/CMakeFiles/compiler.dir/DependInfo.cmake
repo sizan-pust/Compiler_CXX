@@ -8,8 +8,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "D:/compiler/src/codegen.cpp" "CMakeFiles/compiler.dir/src/codegen.cpp.obj" "gcc" "CMakeFiles/compiler.dir/src/codegen.cpp.obj.d"
+  "D:/compiler/src/icg.cpp" "CMakeFiles/compiler.dir/src/icg.cpp.obj" "gcc" "CMakeFiles/compiler.dir/src/icg.cpp.obj.d"
   "D:/compiler/src/lexer.cpp" "CMakeFiles/compiler.dir/src/lexer.cpp.obj" "gcc" "CMakeFiles/compiler.dir/src/lexer.cpp.obj.d"
   "D:/compiler/src/main.cpp" "CMakeFiles/compiler.dir/src/main.cpp.obj" "gcc" "CMakeFiles/compiler.dir/src/main.cpp.obj.d"
+  "D:/compiler/src/optimizer.cpp" "CMakeFiles/compiler.dir/src/optimizer.cpp.obj" "gcc" "CMakeFiles/compiler.dir/src/optimizer.cpp.obj.d"
   "D:/compiler/src/parser.cpp" "CMakeFiles/compiler.dir/src/parser.cpp.obj" "gcc" "CMakeFiles/compiler.dir/src/parser.cpp.obj.d"
   "D:/compiler/src/semantic.cpp" "CMakeFiles/compiler.dir/src/semantic.cpp.obj" "gcc" "CMakeFiles/compiler.dir/src/semantic.cpp.obj.d"
   )

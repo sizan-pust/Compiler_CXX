@@ -12,7 +12,9 @@ add_executable(compiler
     src/lexer.cpp
     src/parser.cpp
     src/semantic.cpp
-    
+    src/icg.cpp
+    src/optimizer.cpp
+    src/codegen.cpp
 )
 
 target_include_directories(compiler PRIVATE src)

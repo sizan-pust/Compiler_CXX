@@ -239,6 +239,9 @@
 #include "ast_printer.h"
 #include "semantic.h"
 #include "symbol_table.h"
+#include "icg.h"
+#include "optimizer.h"
+#include "codegen.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -277,12 +280,12 @@ static void printTokensJSON(const vector<Token>& tokens) {
 
 // ─────────────────────────────────────────────
 //  Usage:  compiler <phase> <source_file>
-//  Phases: --lex   --parse   --semantic
+//  Phases: --lex   --parse   --semantic  --icg  --optimize  --codegen
 // ─────────────────────────────────────────────
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         cerr << "Usage: compiler <phase> <source_file>\n";
-        cerr << "  Phases: --lex  --parse  --semantic\n";
+        cerr << "  Phases: --lex  --parse  --semantic  --icg  --optimize  --codegen\n";
         return 1;
     }
 
@@ -353,6 +356,108 @@ int main(int argc, char* argv[]) {
         cout << "}\n";
 
         return sem.hasErrors() ? 1 : 0;
+    }
+        // ── Phase 4: ICG ──────────────────────────
+    if (phase == "--icg") {
+        ICGenerator icg;
+        icg.generate(root.get());
+ 
+        for (const ICGError& e : icg.errors())
+            cerr << "ICG_ERROR line " << e.line
+                 << ": " << e.message << "\n";
+ 
+        // stdout: JSON TAC list + human-readable text
+        cout << "{ \"tac\":\n";
+        icg.program().printJSON(cout);
+        cout << ",\n\"text\":\n\"";
+ 
+        // Embed text form as a JSON string
+        ostringstream textBuf;
+        icg.program().printText(textBuf);
+        string textStr = textBuf.str();
+        cout << jsonEscape(textStr);
+        cout << "\"\n}\n";
+ 
+        return icg.hasErrors() ? 1 : 0;
+    }
+
+    // ── Phase 6: Code Optimization ────────────
+    if (phase == "--optimize") {
+        ICGenerator icg;
+        icg.generate(root.get());
+
+        for (const ICGError& e : icg.errors())
+            cerr << "ICG_ERROR line " << e.line
+                 << ": " << e.message << "\n";
+
+        CodeOptimizer optimizer;
+        TACProgram optProgram = optimizer.optimize(icg.program());
+
+        for (const OptError& e : optimizer.errors())
+            cerr << "OPT_ERROR line " << e.line
+                 << ": " << e.message << "\n";
+
+        // Report optimization statistics
+        int origCount = optimizer.originalInstrCount();
+        int optCount = optimizer.optimizedInstrCount();
+        int reduction = origCount - optCount;
+        
+        cerr << "Optimization: " << origCount << " → " << optCount 
+             << " instructions (" << reduction << " removed)\n";
+
+        // stdout: JSON optimized TAC + statistics
+        cout << "{ \"tac\":\n";
+        optProgram.printJSON(cout);
+        cout << ",\n\"text\":\n\"";
+
+        ostringstream textBuf;
+        optProgram.printText(textBuf);
+        string textStr = textBuf.str();
+        cout << jsonEscape(textStr);
+
+        cout << "\",\n\"stats\": {\n";
+        cout << "  \"original\": " << origCount << ",\n";
+        cout << "  \"optimized\": " << optCount << ",\n";
+        cout << "  \"reduction\": " << reduction << "\n";
+        cout << "}\n}\n";
+
+        return optimizer.hasErrors() ? 1 : 0;
+    }
+
+    // ── Phase 7: Code Generation ──────────────
+    if (phase == "--codegen") {
+        ICGenerator icg;
+        icg.generate(root.get());
+
+        for (const ICGError& e : icg.errors())
+            cerr << "ICG_ERROR line " << e.line
+                 << ": " << e.message << "\n";
+
+        // Optimize the TAC
+        CodeOptimizer optimizer;
+        TACProgram optProgram = optimizer.optimize(icg.program());
+
+        for (const OptError& e : optimizer.errors())
+            cerr << "OPT_ERROR line " << e.line
+                 << ": " << e.message << "\n";
+
+        // Generate assembly code
+        CodeGenerator codeGen;
+        codeGen.generate(optProgram);
+
+        for (const CodeGenError& e : codeGen.errors())
+            cerr << "CODEGEN_ERROR line " << e.line
+                 << ": " << e.message << "\n";
+
+        // Output assembly code
+        cout << "; Generated x86-64 Assembly Code\n";
+        cout << "; ───────────────────────────────────\n\n";
+
+        for (const auto& line : codeGen.assembly()) {
+            cout << line << "\n";
+        }
+
+        return codeGen.hasErrors() ? 1 : 0;
     }
 
     cerr << "ERROR: Unknown phase '" << phase << "'\n";

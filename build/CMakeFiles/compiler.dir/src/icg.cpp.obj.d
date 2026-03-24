@@ -1,5 +1,5 @@
-CMakeFiles/compiler.dir/src/main.cpp.obj: D:\compiler\src\main.cpp \
- D:\compiler\src\lexer.h \
+CMakeFiles/compiler.dir/src/icg.cpp.obj: D:\compiler\src\icg.cpp \
+ D:\compiler\src\icg.h D:\compiler\src\ast.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\string \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\mingw32\bits\c++config.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\mingw32\bits\os_defines.h \
@@ -84,7 +84,6 @@ CMakeFiles/compiler.dir/src/main.cpp.obj: D:\compiler\src\main.cpp \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\stl_vector.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\stl_bvector.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\vector.tcc \
- D:\compiler\src\parser.h D:\compiler\src\ast.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\memory \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\stl_tempbuf.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\stl_raw_storage_iter.h \
@@ -105,7 +104,7 @@ CMakeFiles/compiler.dir/src/main.cpp.obj: D:\compiler\src\main.cpp \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\shared_ptr_atomic.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\atomic_base.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\backward\auto_ptr.h \
- D:\compiler\src\ast_printer.h \
+ D:\compiler\src\tac.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\iostream \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\ostream \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\ios \
@@ -127,22 +126,9 @@ CMakeFiles/compiler.dir/src/main.cpp.obj: D:\compiler\src\main.cpp \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\ostream.tcc \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\istream \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\istream.tcc \
- D:\compiler\src\semantic.h D:\compiler\src\symbol_table.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\unordered_map \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\hashtable.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\hashtable_policy.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\unordered_map.h \
- D:\compiler\src\icg.h D:\compiler\src\tac.h D:\compiler\src\optimizer.h \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\unordered_set \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\unordered_set.h \
- D:\compiler\src\codegen.h c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\set \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\stl_tree.h \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\stl_set.h \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\stl_multiset.h \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\fstream \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\codecvt.h \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\mingw32\bits\basic_file.h \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\mingw32\bits\c++io.h \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\fstream.tcc \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\sstream \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\sstream.tcc
