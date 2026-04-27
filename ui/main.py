@@ -12,6 +12,8 @@ import subprocess
 import json
 from datetime import datetime
 from pathlib import Path
+import threading
+from queue import Queue
 
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(__file__))
@@ -32,6 +34,8 @@ class CompilerIDE:
         self.file_manager = FileManager()
         self.current_file = None
         self.file_modified = False
+        # Index in the console text where user input may begin (protect earlier output)
+        self.console_lock_index = "1.0"
         
         # Color scheme for syntax highlighting
         self.colors = {
@@ -147,7 +151,8 @@ class CompilerIDE:
         ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
         
         # Quick actions
-        ttk.Button(toolbar, text="▶️ Build & Run", width=12, command=self.build_all).pack(side=tk.LEFT, padx=2)
+        ttk.Button(toolbar, text="🔨 Build", width=12, command=self.build_only).pack(side=tk.LEFT, padx=2)
+        # ttk.Button(toolbar, text="▶️ Build & Run", width=12, command=self.build_and_run).pack(side=tk.LEFT, padx=2)
         
     def create_editor_panel(self, parent):
         """Create code editor panel with line numbers"""
@@ -243,10 +248,17 @@ class CompilerIDE:
         ttk.Button(console_btn_frame, text="🗑️ Clear Console", width=15, command=self.clear_console).pack(side=tk.LEFT, padx=2)
         
         self.console_text = scrolledtext.ScrolledText(
-            console_frame, font=('Courier New', 10), state=tk.DISABLED, 
+            console_frame, font=('Courier New', 10), state=tk.NORMAL,
             background='#1e1e1e', foreground='#00FF00'
         )
+        self.console_text.config(insertbackground="#00FF00")
         self.console_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # Bind console for inline input (user types directly into the console)
+        self.console_text.bind('<KeyPress>', self.on_console_keypress)
+        self.console_text.bind('<Button-1>', self.on_console_click)
+        # Ensure copy/paste still works
+        self.console_text.bind('<Control-c>', lambda e: self.console_text.event_generate('<<Copy>>'))
+        self.console_text.bind('<Control-v>', lambda e: self.console_text.event_generate('<<Paste>>'))
         
         # Configure console colors
         self.console_text.tag_config("output", foreground="#00FF00")
@@ -366,7 +378,7 @@ class CompilerIDE:
             self.save_file()
             
     def run_phase(self, phase):
-        """Run a specific compiler phase"""
+        """Run a specific compiler phase (in background thread)"""
         if not self.current_file:
             messagebox.showwarning("No File", "Please save your file first")
             return
@@ -374,46 +386,73 @@ class CompilerIDE:
         if self.file_modified:
             self.save_file()
         
-        self.update_status(f"Running {phase}...")
-        self.clear_output()
-        
+        # Run in background thread to prevent UI freezing
+        thread = threading.Thread(target=self._run_phase_thread, args=(phase,), daemon=True)
+        thread.start()
+    
+    def _run_phase_thread(self, phase):
+        """Background thread for running a specific phase"""
         try:
-            result = self.compiler.run_phase(self.current_file, phase)
-            self.display_phase_output(phase, result)
-        except Exception as e:
-            self.append_output(f"ERROR: {e}", "error")
+            self.root.after(0, lambda p=phase: self.update_status(f"Running {p}..."))
+            self.root.after(0, self.clear_output)
             
-    def build_all(self):
-        """Run all phases in sequence"""
+            result = self.compiler.run_phase(self.current_file, phase)
+            self.root.after(0, lambda p=phase, r=result: self.display_phase_output(p, r))
+        except Exception as e:
+            self.root.after(0, lambda err=str(e): self.append_output(f"ERROR: {err}", "error"))
+            
+    def build_all(self, run_after=False):
+        """Run all phases in sequence (in background thread)
+
+        Args:
+            run_after: if True, run the program (--link) after build regardless of build success
+        """
         if not self.current_file:
             messagebox.showwarning("No File", "Please save your file first")
             return
-        
+
         if self.file_modified:
             self.save_file()
-        
-        self.clear_output()
-        phases = ["--lex", "--parse", "--semantic", "--icg", "--optimize", "--codegen"]
-        
-        build_success = True
-        for phase in phases:
-            self.update_status(f"Building with {phase}...")
-            try:
-                result = self.compiler.run_phase(self.current_file, phase)
-                self.display_phase_output(phase, result)
-                if not result['success'] and phase in ["--lex", "--parse", "--semantic"]:
+
+        # Run in background thread to prevent UI freezing
+        thread = threading.Thread(target=self._build_all_thread, args=(run_after,), daemon=True)
+        thread.start()
+    
+    def _build_all_thread(self, run_after=False):
+        """Background thread for building all phases"""
+        try:
+            # Update UI on main thread
+            self.root.after(0, self.clear_output)
+            
+            phases = ["--lex", "--parse", "--semantic", "--icg", "--optimize", "--codegen"]
+            
+            build_success = True
+            for phase in phases:
+                self.root.after(0, lambda p=phase: self.update_status(f"Building with {p}..."))
+                try:
+                    result = self.compiler.run_phase(self.current_file, phase)
+                    self.root.after(0, lambda p=phase, r=result: self.display_phase_output(p, r))
+                    
+                    if not result['success'] and phase in ["--lex", "--parse", "--semantic"]:
+                        build_success = False
+                        break
+                except Exception as e:
+                    self.root.after(0, lambda p=phase, err=str(e): self.append_output(f"ERROR in {p}: {err}", "error"))
                     build_success = False
                     break
-            except Exception as e:
-                self.append_output(f"ERROR in {phase}: {e}", "error")
-                build_success = False
-                break
-        
-        if build_success:
-            self.update_status("Build complete - Running program simulation...")
-            self.root.after(500, self.run_program)
-        else:
-            self.update_status("Build failed")
+            # Run program automatically after successful build, or if requested regardless
+            if build_success:
+                self.root.after(0, lambda: self.update_status("Build complete - Running program..."))
+                # Schedule program run on main thread
+                self.root.after(500, self.run_program)
+            else:
+                if run_after:
+                    self.root.after(0, lambda: self.update_status("Build failed, running program (--link) anyway..."))
+                    self.root.after(500, self.run_program)
+                else:
+                    self.root.after(0, lambda: self.update_status("Build failed"))
+        except Exception as e:
+            self.root.after(0, lambda: self.update_status(f"Build error: {str(e)}"))
         
     def display_phase_output(self, phase, result):
         """Display output from a compiler phase"""
@@ -424,19 +463,26 @@ class CompilerIDE:
         if result['stdout']:
             self.append_output(f"\n[{phase}] Output:\n", "info")
             output = result['stdout']
-            
-            # Try to parse JSON output
+            # Try to parse JSON output; strip any leading non-JSON text
+            def extract_json_text(s):
+                first = s.find('{')
+                last = s.rfind('}')
+                if first != -1 and last != -1 and last > first:
+                    return s[first:last+1]
+                return s
+
+            json_text = extract_json_text(output)
             try:
-                data = json.loads(output)
+                data = json.loads(json_text)
                 self.append_output(json.dumps(data, indent=2), "info")
-                
+
                 # Display in appropriate tab
-                if phase == "--codegen" and 'asm' in output:
-                    self.display_assembly(output)
-                elif phase in ["--icg", "--optimize"] and 'tac' in output:
-                    self.display_tac(output)
-                elif phase == "--semantic" and 'symbols' in output:
-                    self.display_symbols(output)
+                if phase == "--codegen" and 'asm' in json_text:
+                    self.display_assembly(json_text)
+                elif phase in ["--icg", "--optimize"] and 'tac' in json_text:
+                    self.display_tac(json_text)
+                elif phase == "--semantic" and 'symbols' in json_text:
+                    self.display_symbols(json_text)
             except json.JSONDecodeError:
                 # Plain text output
                 self.append_output(output, "info")
@@ -531,38 +577,226 @@ class CompilerIDE:
         )
     
     def clear_console(self):
-        """Clear console output"""
-        self.console_text.config(state=tk.NORMAL)
+        """Clear console output and terminate current execution"""
+        # Terminate any running compiler/process
+        try:
+            self.compiler.terminate_current()
+        except Exception:
+            pass
+
         self.console_text.delete(1.0, tk.END)
-        self.console_text.config(state=tk.DISABLED)
+        # reset input lock index
+        self.console_lock_index = "1.0"
+
+        self.update_status("Console cleared")
+
+        # Notify user
+        self.append_console("Execution terminated.", "info")
     
     def append_console(self, text, tag="output"):
         """Append text to console"""
-        self.console_text.config(state=tk.NORMAL)
+        # Insert text at the end and keep the console editable for inline input
         self.console_text.insert(tk.END, text, tag)
         self.console_text.see(tk.END)
-        self.console_text.config(state=tk.DISABLED)
+        # Update the protected index so earlier output cannot be edited
+        try:
+            self.console_lock_index = self.console_text.index(tk.END + "-1c")
+        except Exception:
+            self.console_lock_index = self.console_text.index(tk.END)
     
     def run_program(self):
-        """Run the compiled program and show output"""
+        """Run the compiled program and show output (in background thread)"""
         if not self.current_file:
             messagebox.showwarning("No File", "Please save your file first")
             return
         
-        self.clear_console()
-        self.append_console("=" * 60 + "\n", "info")
-        self.append_console("Program Output:\n", "info")
-        self.append_console("=" * 60 + "\n\n", "info")
-        
-        # Extract code from editor
-        code = self.editor.get(1.0, tk.END)
-        
-        # Simulate program execution by analyzing printf statements
-        self.simulate_execution(code)
-        
-        self.append_console("\n" + "=" * 60 + "\n", "info")
-        self.append_console("Program finished\n", "info")
-        self.output_tabs.select(4)  # Switch to Console tab
+        # Run in background thread to prevent UI freezing
+        thread = threading.Thread(target=self._run_program_thread, daemon=True)
+        thread.start()
+    
+    def _run_program_thread(self):
+        """Background thread for running program"""
+        try:
+            # Clear console on main thread
+            self.root.after(0, self.clear_console)
+            self.root.after(0, lambda: self.append_console("=" * 60 + "\n", "info"))
+            self.root.after(0, lambda: self.append_console("Program Output:\n", "info"))
+            self.root.after(0, lambda: self.append_console("=" * 60 + "\n\n", "info"))
+            # Start program in async mode with streaming callbacks
+            def stdout_cb(line):
+                self.root.after(0, lambda l=line: self.append_console(l, 'output'))
+
+            def stderr_cb(line):
+                self.root.after(0, lambda l=line: self.append_console(l, 'error'))
+
+            def exit_cb(returncode):
+                self.root.after(0, lambda: self.append_console("\n" + "=" * 60 + "\n", "info"))
+                self.root.after(0, lambda: self.append_console(f"Program finished (exit code {returncode})\n", "info"))
+                self.root.after(0, lambda: self.output_tabs.select(4))  # Switch to Console tab
+
+            res = self.compiler.start_program(self.current_file, stdout_callback=stdout_cb, stderr_callback=stderr_cb, exit_callback=exit_cb)
+
+            # If compilation failed, show compile stderr
+            if not res.get('started'):
+                err = res.get('stderr', '')
+                if err:
+                    self.root.after(0, lambda e=err: self.append_console(e, 'error'))
+                self.root.after(0, lambda: self.append_console("\n" + "=" * 60 + "\n", "info"))
+                return
+            # ensure input area is at the end and locked to not permit editing earlier output
+            try:
+                self.console_text.mark_set(tk.INSERT, tk.END)
+                self.console_lock_index = self.console_text.index(tk.END + "-1c")
+            except Exception:
+                pass
+        except Exception as e:
+            self.root.after(0, lambda: self.append_console(f"Error: {str(e)}\n", "error"))
+
+    def _index_before(self, idx1, idx2):
+        """Return True if idx1 < idx2 in text index order."""
+        try:
+            l1, c1 = map(int, str(idx1).split('.'))
+            l2, c2 = map(int, str(idx2).split('.'))
+            return (l1 < l2) or (l1 == l2 and c1 < c2)
+        except Exception:
+            return False
+
+    def on_console_click(self, event):
+        self.console_text.focus_set()
+        self.console_text.mark_set(tk.INSERT, tk.END)
+        self.console_text.see(tk.END)
+        return "break"
+
+    def on_console_keypress(self, event):
+        """Handle inline console keypresses: prevent editing before lock, handle Enter to send input."""
+        try:
+            # Protect earlier output: if caret is before lock index, move it to end
+            if not self.console_text.compare(tk.INSERT, '>=', self.console_lock_index):
+                self.console_text.mark_set(tk.INSERT, tk.END)
+                return 'break'
+        except Exception:
+            pass
+
+        # Handle Enter: send the current input line(s) from lock index
+        if event.keysym == 'Return':
+            try:
+                input_text = self.console_text.get(self.console_lock_index, tk.END)
+                # strip trailing newline inserted by user if any
+                if input_text.endswith('\n'):
+                    input_text = input_text[:-1]
+                self.console_text.insert(tk.END, '\n')
+                sent = False
+                try:
+                    sent = self.compiler.send_input(input_text + '\n')
+                except Exception as e:
+                    self.append_console(f"Send input error: {e}\n", 'error')
+
+                if not sent:
+                    self.append_console("No running program to send input to.\n", 'error')
+                # Ensure newline present as echo
+                if not self.console_text.get(self.console_lock_index, tk.END).endswith('\n'):
+                    self.console_text.insert(tk.END, '\n')
+                self.console_text.see(tk.END)
+                # update lock index to new end
+                self.console_lock_index = self.console_text.index(tk.END + '-1c')
+            except Exception:
+                pass
+            return 'break'
+
+        # Prevent BackSpace / Left moving before lock
+        if event.keysym in ('BackSpace', 'Left', 'Home'):
+            try:
+                if not self.console_text.compare(tk.INSERT, '>', self.console_lock_index):
+                    return 'break'
+            except Exception:
+                return 'break'
+
+        # Allow other keys
+        return
+
+    def send_console_input(self):
+        """Send the text in the console input entry to the running program's stdin."""
+        # legacy entry removed; keep method for compatibility but do nothing
+        return
+
+    def build_only(self):
+        """Compile the current file (compile-only)"""
+        if not self.current_file:
+            messagebox.showwarning("No File", "Please save your file first")
+            return
+
+        if self.file_modified:
+            self.save_file()
+
+        thread = threading.Thread(target=self._build_only_thread, daemon=True)
+        thread.start()
+
+    def _build_only_thread(self):
+        try:
+            self.root.after(0, lambda: self.update_status("Compiling (build)..."))
+            self.root.after(0, self.clear_output)
+
+            result = self.compiler.compile_file(self.current_file)
+
+            # Show compile stderr (warnings/errors)
+            if result.get('stderr'):
+                self.root.after(0, lambda s=result.get('stderr'): self.append_output(s, 'error'))
+
+            # Show compile stdout
+            if result.get('stdout'):
+                self.root.after(0, lambda s=result.get('stdout'): self.append_output(s, 'info'))
+
+            if result.get('success'):
+                self.root.after(0, lambda: self.update_status("Build succeeded"))
+            else:
+                self.root.after(0, lambda: self.update_status("Build failed"))
+        except Exception as e:
+            self.root.after(0, lambda: self.append_output(f"Build error: {str(e)}", 'error'))
+
+    # def build_and_run(self):
+    #     """Compile the current file and run it if compilation succeeds"""
+    #     if not self.current_file:
+    #         messagebox.showwarning("No File", "Please save your file first")
+    #         return
+
+    #     if self.file_modified:
+    #         self.save_file()
+
+    #     thread = threading.Thread(target=self._build_and_run_thread, daemon=True)
+    #     thread.start()
+
+    # def _build_and_run_thread(self):
+    #     try:
+    #         self.root.after(0, lambda: self.update_status("Building and running..."))
+    #         self.root.after(0, self.clear_output)
+
+    #         # Use the bridge's compile+run helper which compiles and runs in one cancellable step
+    #         result = self.compiler.run_link(self.current_file)
+
+    #         # Show stderr (compile or runtime errors)
+    #         if result.get('stderr'):
+    #             self.root.after(0, lambda s=result.get('stderr'): self.append_output(s, 'error'))
+
+    #         # Try to parse JSON stdout
+    #         stdout = result.get('stdout', '')
+    #         if stdout:
+    #             first = stdout.find('{')
+    #             last = stdout.rfind('}')
+    #             json_text = stdout[first:last+1] if (first != -1 and last != -1 and last > first) else stdout
+    #             try:
+    #                 data = json.loads(json_text)
+    #                 out_text = data.get('output', '')
+    #                 if out_text:
+    #                     self.root.after(0, lambda t=out_text: self.append_console(t, 'output'))
+    #                 else:
+    #                     if not data.get('success', False):
+    #                         err = data.get('error', '')
+    #                         if err:
+    #                             self.root.after(0, lambda e=err: self.append_console(e, 'error'))
+    #             except json.JSONDecodeError:
+    #                 self.root.after(0, lambda s=stdout: self.append_console(s, 'output'))
+    #     except Exception as e:
+    #         self.root.after(0, lambda: self.append_output(f"Build & Run error: {str(e)}", 'error'))
     
     def simulate_execution(self, code):
         """Simulate program execution based on code analysis"""
@@ -699,10 +933,15 @@ class CompilerIDE:
             if result is not None:
                 return result
         
-        # If it's an expression like (5 + 3), try to evaluate it
-        expr_match = re.match(r'\((.*)\)', arg)
-        if expr_match:
-            expr = expr_match.group(1)
+        # If it's an expression (with or without parentheses), try to evaluate it
+        # Check if it contains operators or is wrapped in parentheses
+        if any(op in arg for op in ['+', '-', '*', '/', '%']) or re.match(r'\(.*\)', arg):
+            # Remove outer parentheses if present
+            expr = arg
+            expr_match = re.match(r'\((.*)\)', expr)
+            if expr_match:
+                expr = expr_match.group(1)
+            
             result = self._evaluate_expression(expr, var_values)
             if result is not None:
                 return result

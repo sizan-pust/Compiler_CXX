@@ -145,4 +145,16 @@ CMakeFiles/compiler.dir/src/main.cpp.obj: D:\compiler\src\main.cpp \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\mingw32\bits\c++io.h \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\fstream.tcc \
  c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\sstream \
- c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\sstream.tcc
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\sstream.tcc \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\locale \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\locale_facets_nonio.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\ctime c:\mingw\include\time.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\mingw32\bits\time_members.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\mingw32\bits\messages_members.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\locale_facets_nonio.tcc \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\locale_conv.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\stringfwd.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\allocator.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\codecvt.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\unique_ptr.h \
+ c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\codecvt

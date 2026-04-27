@@ -245,6 +245,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
+#include <locale>
+#include <codecvt>
 using namespace std;
 
 static string jsonEscape(const string& s) {
@@ -301,6 +304,95 @@ int main(int argc, char* argv[]) {
     ostringstream buf;
     buf << file.rdbuf();
     string source = buf.str();
+
+        // If user requested linking/execution, run the real C compiler and execute
+        if (phase == "--link") {
+        // Compute directory and filenames so we can run commands from source dir
+        size_t sep = sourceFile.find_last_of("/\\\\");
+        string dir = (sep == string::npos) ? string(".") : sourceFile.substr(0, sep);
+        string filename = (sep == string::npos) ? sourceFile : sourceFile.substr(sep + 1);
+        size_t dot = filename.find_last_of('.');
+        string fname_noext = (dot == string::npos) ? filename : filename.substr(0, dot);
+
+        string exeName = fname_noext + string("_exec");
+    #ifdef _WIN32
+        exeName += ".exe";
+    #endif
+        string compileLogName = fname_noext + string("_compile.txt");
+        string runOutName = fname_noext + string("_output.txt");
+
+        // Paths to read the logs after running (absolute paths)
+        string compileLogPath = dir + "/" + compileLogName;
+        string runOutPath = dir + "/" + runOutName;
+        string exeFullPath = dir + "/" + exeName;
+
+        // Build compile command that runs from the source directory to avoid quoting issues
+    #ifdef _WIN32
+        string compileCmd = string("pushd \"") + dir + "\" & gcc -o \"" + exeName + "\" \"" + filename + "\" > \"" + compileLogName + "\" 2>&1 & popd";
+    #else
+        string compileCmd = string("gcc -o \"") + exeFullPath + "\" \"" + sourceFile + "\" > \"" + compileLogPath + "\" 2>&1";
+    #endif
+
+        cerr << "[DEBUG] compileCmd: " << compileCmd << "\n";
+        int cret = system(compileCmd.c_str());
+
+        string compileOutput;
+        ifstream cl(compileLogPath);
+        if (cl.is_open()) {
+            stringstream s; s << cl.rdbuf(); compileOutput = s.str(); cl.close();
+            // remove compile log now that we've read it
+            remove(compileLogPath.c_str());
+        }
+        cerr << "[DEBUG] compile_ret=" << cret << " compileOutputLen=" << compileOutput.size() << "\n";
+
+        if (cret != 0) {
+            cout << "{\n";
+            cout << "  \"success\": false,\n";
+            cout << "  \"error\": \"" << jsonEscape(compileOutput) << "\",\n";
+            cout << "  \"status\": 1\n";
+            cout << "}\n";
+            return 1;
+        }
+
+        // Execute and capture output
+    #ifdef _WIN32
+        string execCmd = string("pushd \"") + dir + "\" & \"" + exeName + "\" > \"" + runOutName + "\" 2>&1 & popd";
+    #else
+        string execCmd = string("\"") + exeFullPath + "\" > \"" + runOutPath + "\" 2>&1";
+    #endif
+        cerr << "[DEBUG] execCmd: " << execCmd << "\n";
+        int excret = system(execCmd.c_str());
+
+        string runOutput;
+        ifstream ro(runOutPath);
+        if (ro.is_open()) { stringstream s; s << ro.rdbuf(); runOutput = s.str(); ro.close();
+            // remove run output file now that we've read it
+            remove(runOutPath.c_str());
+        }
+        cerr << "[DEBUG] exec_ret=" << excret << " runOutputLen=" << runOutput.size() << "\n";
+        // If output file is UTF-16 LE (BOM 0xFF 0xFE), convert to UTF-8
+        if (runOutput.size() >= 2 && (unsigned char)runOutput[0] == 0xFF && (unsigned char)runOutput[1] == 0xFE) {
+            // convert bytes (skip BOM) to char16_t units
+            u16string u16;
+            for (size_t i = 2; i + 1 < runOutput.size(); i += 2) {
+                uint16_t w = (unsigned char)runOutput[i] | ((unsigned char)runOutput[i+1] << 8);
+                u16.push_back((char16_t)w);
+            }
+            wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t> convert;
+            runOutput = convert.to_bytes(u16);
+        }
+
+        // cleanup temporary files
+        remove(exeFullPath.c_str());
+
+        cout << "{\n";
+        cout << "  \"success\": true,\n";
+        cout << "  \"output\": \"" << jsonEscape(runOutput) << "\",\n";
+        cout << "  \"exec_status\": " << excret << ",\n";
+        cout << "  \"status\": 0\n";
+        cout << "}\n";
+        return 0;
+        }
 
     // ── Phase 1: Lex ─────────────────────────
     Lexer         lexer(source);
