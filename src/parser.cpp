@@ -87,6 +87,7 @@ void Parser::synchronize() {
 std::string Parser::parseTypeName() {
     if (!isTypeName()) {
         error("Expected type name (int/float/char/double/void)");
+        if (!isAtEnd()) advance();   // IMPORTANT: prevent infinite loop
         return "unknown";
     }
     return advance().value;
@@ -100,15 +101,15 @@ ASTNodePtr Parser::parse() {
 
     // Skip preprocessor lines (#include etc.)
     while (!isAtEnd()) {
-        if (check(TokenType::HASH)) {
-            // consume until newline (skip preprocessor entirely)
-            while (!isAtEnd() &&
-                   peek().type != TokenType::SEMICOLON &&
-                   peek().type != TokenType::LBRACE) {
-                advance();
-            }
-            continue;
-        }
+       if (check(TokenType::HASH)) {
+    int startLine = peek().line;
+
+    while (!isAtEnd() && peek().line == startLine) {
+        advance();
+    }
+
+    continue;
+}
         try {
             program->addChild(parseDecl());
         } catch (...) {
@@ -122,15 +123,27 @@ ASTNodePtr Parser::parse() {
 //  Declaration: variable or function
 // ─────────────────────────────────────────────
 ASTNodePtr Parser::parseDecl() {
-    std::string typeName = parseTypeName();
-    Token       nameTok  = peek();
-    expect(TokenType::IDENTIFIER, "Expected identifier after type");
+    if (!isTypeName()) {
+        error("Expected declaration type");
+        synchronize();
+        return makeNode(NodeType::VAR_DECL, peek().line, "error");
+    }
 
-    // function declaration: type name '(' ...
+    std::string typeName = parseTypeName();
+
+    Token nameTok = peek();
+    if (!check(TokenType::IDENTIFIER)) {
+        error("Expected identifier after type");
+        synchronize();
+        return makeNode(NodeType::VAR_DECL, nameTok.line, "error");
+    }
+
+    advance(); // consume identifier
+
     if (check(TokenType::LPAREN)) {
         return parseFuncDecl(typeName, nameTok);
     }
-    // variable declaration
+
     return parseVarDecl(typeName, nameTok);
 }
 
@@ -457,10 +470,11 @@ ASTNodePtr Parser::parseMultiplicative() {
 //  unary → ('!'|'-'|'++'|'--') unary | postfix
 // ─────────────────────────────────────────────
 ASTNodePtr Parser::parseUnary() {
-    if (check(TokenType::OP_NOT)   ||
-        check(TokenType::OP_MINUS) ||
-        check(TokenType::OP_INC)   ||
-        check(TokenType::OP_DEC)) {
+if (check(TokenType::OP_NOT)     ||
+    check(TokenType::OP_MINUS)   ||
+    check(TokenType::OP_ADDRESS) ||
+    check(TokenType::OP_INC)     ||
+    check(TokenType::OP_DEC)) {
         Token op = advance();
         auto node = makeNode(NodeType::UNARY_OP, op.line, "pre:" + op.value);
         node->addChild(parseUnary());

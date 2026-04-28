@@ -235,9 +235,10 @@ Token Lexer::scanOperatorOrPunct() {
         case '>':
             if (c1 == '=') return two(TokenType::OP_GEQ,   ">=");
             advance(); return Token{ TokenType::OP_GT,      ">", startLine, startCol };
-        case '&':
-            if (c1 == '&') return two(TokenType::OP_AND,   "&&");
-            advance(); return Token{ TokenType::ERROR,      "&", startLine, startCol };
+     
+case '&':
+    if (c1 == '&') return two(TokenType::OP_AND, "&&");
+    advance(); return Token{ TokenType::OP_ADDRESS, "&", startLine, startCol };
         case '|':
             if (c1 == '|') return two(TokenType::OP_OR,    "||");
             advance(); return Token{ TokenType::ERROR,      "|", startLine, startCol };
@@ -329,6 +330,7 @@ std::string Lexer::tokenTypeName(TokenType t) {
         case TokenType::OP_AND:          return "OP_AND";
         case TokenType::OP_OR:           return "OP_OR";
         case TokenType::OP_NOT:          return "OP_NOT";
+        case TokenType::OP_ADDRESS:     return "OP_ADDRESS";
         case TokenType::OP_INC:          return "OP_INC";
         case TokenType::OP_DEC:          return "OP_DEC";
         case TokenType::LPAREN:          return "LPAREN";

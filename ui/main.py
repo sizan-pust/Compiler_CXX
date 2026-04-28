@@ -456,51 +456,53 @@ class CompilerIDE:
         
     def display_phase_output(self, phase, result):
         """Display output from a compiler phase"""
+
         if result['stderr']:
             self.append_output(f"\n[{phase}] Errors/Warnings:\n", "info")
             self.append_output(result['stderr'], "error" if "ERROR" in result['stderr'] else "warning")
-        
-        if result['stdout']:
-            self.append_output(f"\n[{phase}] Output:\n", "info")
-            output = result['stdout']
-            # Try to parse JSON output; strip any leading non-JSON text
-            def extract_json_text(s):
-                first = s.find('{')
-                last = s.rfind('}')
-                if first != -1 and last != -1 and last > first:
-                    return s[first:last+1]
-                return s
 
-            json_text = extract_json_text(output)
-            try:
-                data = json.loads(json_text)
-                self.append_output(json.dumps(data, indent=2), "info")
+        if not result['stdout']:
+            return
 
-                # Display in appropriate tab
-                if phase == "--codegen" and 'asm' in json_text:
-                    self.display_assembly(json_text)
-                elif phase in ["--icg", "--optimize"] and 'tac' in json_text:
-                    self.display_tac(json_text)
-                elif phase == "--semantic" and 'symbols' in json_text:
-                    self.display_symbols(json_text)
-            except json.JSONDecodeError:
-                # Plain text output
-                self.append_output(output, "info")
+        output = result['stdout']
+
+        self.append_output(f"\n[{phase}] Output:\n", "info")
+        self.append_output(output, "info")
+
+        # Parse phase: show AST in Output tab
+        if phase == "--parse":
+            self.output_tabs.select(0)
+            return
+
+        # Semantic phase: show symbol table if JSON has symbols
+        if phase == "--semantic":
+            self.display_symbols(output)
+            return
+
+        # ICG / Optimize: show TAC
+        if phase in ["--icg", "--optimize"]:
+            self.display_tac(output)
+            return
+
+        # Codegen: your C++ prints plain assembly, not JSON
+        if phase == "--codegen":
+            self.display_assembly(output)
+            return
                 
     def display_assembly(self, output):
         """Display assembly output"""
         self.asm_text.config(state=tk.NORMAL)
         self.asm_text.delete(1.0, tk.END)
-        
+
         try:
             data = json.loads(output)
             asm_code = data.get('asm', data.get('text', output))
             self.asm_text.insert(1.0, asm_code)
         except:
             self.asm_text.insert(1.0, output)
-        
+
         self.asm_text.config(state=tk.DISABLED)
-        self.output_tabs.select(1)  # Switch to Assembly tab
+        self.output_tabs.select(1)
         
     def display_tac(self, output):
         """Display TAC output"""

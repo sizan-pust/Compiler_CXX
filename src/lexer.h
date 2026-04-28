@@ -47,6 +47,7 @@ enum class TokenType {
     OP_AND,         // &&
     OP_OR,          // ||
     OP_NOT,         // !
+    OP_ADDRESS,      // &
 
     // Increment / Decrement
     OP_INC,         // ++
