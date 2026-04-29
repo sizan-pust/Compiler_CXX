@@ -60,12 +60,16 @@ public:
 
     // ── Declaration ───────────────────────────
     // Returns false if name already exists in current scope
-    bool declare(const Symbol& sym) {
-        auto& current = m_scopes.back();
-        if (current.count(sym.name)) return false; // redeclaration
-        current[sym.name] = sym;
-        return true;
-    }
+   bool declare(const Symbol& sym) {
+    auto& current = m_scopes.back();
+
+    if (current.count(sym.name)) return false;
+
+    current[sym.name] = sym;
+    m_allSymbols.push_back(sym);   // keep for final display
+
+    return true;
+}
 
     // ── Lookup (all scopes, innermost first) ──
     // Returns nullptr if not found
@@ -87,28 +91,30 @@ public:
     }
 
     // ── Dump symbol table as JSON (for UI) ────
-    void printJSON(ostream& out) const {
-        out << "[\n";
-        bool firstEntry = true;
-        for (int level = 0; level < (int)m_scopes.size(); ++level) {
-            for (auto& entry : m_scopes[level]) {
-                const auto& sym = entry.second;
-                if (!firstEntry) out << ",\n";
-                firstEntry = false;
-                out << "  {\n";
-                out << "    \"name\": \""       << sym.name        << "\",\n";
-                out << "    \"type\": \""        << sym.type        << "\",\n";
-                out << "    \"kind\": \""        << kindStr(sym.kind) << "\",\n";
-                out << "    \"scope\": "         << sym.scopeLevel  << ",\n";
-                out << "    \"line\": "          << sym.declLine    << "\n";
-                out << "  }";
-            }
-        }
-        out << "\n]\n";
+  void printJSON(ostream& out) const {
+    out << "[\n";
+
+    for (size_t i = 0; i < m_allSymbols.size(); ++i) {
+        const auto& sym = m_allSymbols[i];
+
+        out << "  {\n";
+        out << "    \"name\": \""  << sym.name << "\",\n";
+        out << "    \"type\": \""  << sym.type << "\",\n";
+        out << "    \"kind\": \""  << kindStr(sym.kind) << "\",\n";
+        out << "    \"scope\": "   << sym.scopeLevel << ",\n";
+        out << "    \"line\": "    << sym.declLine << "\n";
+        out << "  }";
+
+        if (i + 1 < m_allSymbols.size()) out << ",";
+        out << "\n";
     }
+
+    out << "]\n";
+}
 
 private:
     vector<unordered_map<string, Symbol>> m_scopes;
+    vector<Symbol> m_allSymbols;
 
     static string kindStr(SymbolKind k) {
         switch (k) {

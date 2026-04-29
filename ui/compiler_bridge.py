@@ -29,18 +29,38 @@ class CompilerBridge:
         """Check if compiler exists"""
         if not os.path.exists(self.compiler_path):
             raise FileNotFoundError(f"Compiler not found: {self.compiler_path}")
+        
+
     def _make_unbuffered_source(self, source_file):
         """Create temp C file and inject stdout unbuffering inside main()."""
+        
         dirpath = os.path.dirname(source_file) or "."
         filename = os.path.basename(source_file)
         temp_path = os.path.join(dirpath, "__run_unbuffered_" + filename)
 
         with open(source_file, "r", encoding="utf-8") as f:
             code = f.read()
-
+        code = "#include <stdio.h>\n#define print printf\n" + code
         # Find: int main(...) {
         pattern = r'(int\s+main\s*\([^)]*\)\s*\{)'
+    # wrap top-level mini-C code inside main if user did not write main()
+        if "main" not in code:
+            code = code + "\n"
+            code = code.replace("#define print printf\n", "#define print printf\n\nint main(){\n", 1)
+            code += "\nreturn 0;\n}\n"
 
+        # disable stdout buffering
+        code = code.replace(
+            "int main(){",
+            "int main(){\n    setvbuf(stdout, NULL, _IONBF, 0);",
+            1
+        )
+
+        code = code.replace(
+            "int main() {",
+            "int main() {\n    setvbuf(stdout, NULL, _IONBF, 0);",
+            1
+        )
         replacement = r'\1\n    setvbuf(stdout, NULL, _IONBF, 0);'
 
         new_code, count = re.subn(pattern, replacement, code, count=1)

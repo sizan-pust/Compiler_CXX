@@ -2,18 +2,16 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <cctype>
+using namespace std;
 
-// ─────────────────────────────────────────────
 //  Constructor
-// ─────────────────────────────────────────────
-Lexer::Lexer(const std::string& source)
+Lexer::Lexer(const string& source)
     : m_source(source), m_pos(0), m_line(1), m_col(1) {}
 
-// ─────────────────────────────────────────────
+
 //  Public: tokenize()
-// ─────────────────────────────────────────────
-std::vector<Token> Lexer::tokenize() {
-    std::vector<Token> tokens;
+vector<Token> Lexer::tokenize() {
+    vector<Token> tokens;
 
     while (true) {
         skipWhitespace();
@@ -73,9 +71,7 @@ std::vector<Token> Lexer::tokenize() {
     return tokens;
 }
 
-// ─────────────────────────────────────────────
 //  Helpers
-// ─────────────────────────────────────────────
 char Lexer::peek(int offset) const {
     size_t idx = m_pos + offset;
     if (idx >= m_source.size()) return '\0';
@@ -116,9 +112,8 @@ Token Lexer::makeToken(TokenType t, const std::string& val) const {
     return Token{ t, val, m_line, m_col };
 }
 
-// ─────────────────────────────────────────────
+
 //  Scanner: identifier or keyword
-// ─────────────────────────────────────────────
 Token Lexer::scanIdentifierOrKeyword() {
     int startLine = m_line, startCol = m_col;
     std::string word;
@@ -130,9 +125,8 @@ Token Lexer::scanIdentifierOrKeyword() {
     return Token{ t, word, startLine, startCol };
 }
 
-// ─────────────────────────────────────────────
+
 //  Scanner: integer or float literal
-// ─────────────────────────────────────────────
 Token Lexer::scanNumber() {
     int startLine = m_line, startCol = m_col;
     std::string num;
@@ -164,9 +158,8 @@ Token Lexer::scanNumber() {
     return Token{ t, num, startLine, startCol };
 }
 
-// ─────────────────────────────────────────────
+
 //  Scanner: character literal  'x'  '\n'
-// ─────────────────────────────────────────────
 Token Lexer::scanChar() {
     int startLine = m_line, startCol = m_col;
     std::string val;
@@ -177,9 +170,8 @@ Token Lexer::scanChar() {
     return Token{ TokenType::LIT_CHAR, val, startLine, startCol };
 }
 
-// ─────────────────────────────────────────────
+
 //  Scanner: string literal  "hello\n"
-// ─────────────────────────────────────────────
 Token Lexer::scanString() {
     int startLine = m_line, startCol = m_col;
     std::string val;
@@ -192,9 +184,8 @@ Token Lexer::scanString() {
     return Token{ TokenType::LIT_STRING, val, startLine, startCol };
 }
 
-// ─────────────────────────────────────────────
+
 //  Scanner: operators and punctuation
-// ─────────────────────────────────────────────
 Token Lexer::scanOperatorOrPunct() {
     int startLine = m_line, startCol = m_col;
     char c  = peek();
@@ -259,9 +250,8 @@ case '&':
     }
 }
 
-// ─────────────────────────────────────────────
+
 //  Keyword table
-// ─────────────────────────────────────────────
 TokenType Lexer::lookupKeyword(const std::string& word) {
     static const std::unordered_map<std::string, TokenType> kw = {
         {"int",      TokenType::KW_INT},
@@ -285,9 +275,8 @@ TokenType Lexer::lookupKeyword(const std::string& word) {
     return (it != kw.end()) ? it->second : TokenType::IDENTIFIER;
 }
 
-// ─────────────────────────────────────────────
+
 //  Token type → name string  (for output)
-// ─────────────────────────────────────────────
 std::string Lexer::tokenTypeName(TokenType t) {
     switch (t) {
         case TokenType::KW_INT:          return "KW_INT";

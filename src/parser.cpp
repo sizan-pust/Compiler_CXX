@@ -1,15 +1,13 @@
 #include "parser.h"
 #include <stdexcept>
+using namespace std;
 
-// ─────────────────────────────────────────────
 //  Constructor
-// ─────────────────────────────────────────────
 Parser::Parser(const std::vector<Token>& tokens)
     : m_tokens(tokens), m_pos(0) {}
 
-// ─────────────────────────────────────────────
+
 //  Token navigation
-// ─────────────────────────────────────────────
 const Token& Parser::peek(int offset) const {
     size_t idx = m_pos + offset;
     if (idx >= m_tokens.size()) return m_tokens.back(); // EOF
@@ -47,9 +45,8 @@ bool Parser::isTypeName() const {
            t == TokenType::KW_VOID;
 }
 
-// ─────────────────────────────────────────────
+
 //  Error handling
-// ─────────────────────────────────────────────
 void Parser::error(const std::string& msg) {
     m_errors.push_back({ msg, peek().line, peek().col });
 }
@@ -80,10 +77,8 @@ void Parser::synchronize() {
     }
 }
 
-// ─────────────────────────────────────────────
 //  Type name parser
 //  Returns e.g. "int", "float", "void"
-// ─────────────────────────────────────────────
 std::string Parser::parseTypeName() {
     if (!isTypeName()) {
         error("Expected type name (int/float/char/double/void)");
@@ -93,35 +88,34 @@ std::string Parser::parseTypeName() {
     return advance().value;
 }
 
-// ─────────────────────────────────────────────
+
 //  Top-level: parse()
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parse() {
     auto program = makeNode(NodeType::PROGRAM, 0, "program");
 
-    // Skip preprocessor lines (#include etc.)
     while (!isAtEnd()) {
-       if (check(TokenType::HASH)) {
-    int startLine = peek().line;
+        if (check(TokenType::HASH)) {
+            int startLine = peek().line;
+            while (!isAtEnd() && peek().line == startLine) advance();
+            continue;
+        }
 
-    while (!isAtEnd() && peek().line == startLine) {
-        advance();
-    }
-
-    continue;
-}
         try {
-            program->addChild(parseDecl());
+            if (isTypeName()) {
+                program->addChild(parseDecl());
+            } else {
+                program->addChild(parseStmt());
+            }
         } catch (...) {
             synchronize();
         }
     }
+
     return program;
 }
 
-// ─────────────────────────────────────────────
+
 //  Declaration: variable or function
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseDecl() {
     if (!isTypeName()) {
         error("Expected declaration type");
@@ -147,10 +141,8 @@ ASTNodePtr Parser::parseDecl() {
     return parseVarDecl(typeName, nameTok);
 }
 
-// ─────────────────────────────────────────────
 //  Function declaration
 //  funcDecl → type IDENT '(' paramList ')' block
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseFuncDecl(const std::string& retType, const Token& nameTok) {
     auto node = makeNode(NodeType::FUNCTION_DECL, nameTok.line,
                          retType + " " + nameTok.value);
@@ -159,7 +151,7 @@ ASTNodePtr Parser::parseFuncDecl(const std::string& retType, const Token& nameTo
     // Parameter list
     if (!check(TokenType::RPAREN)) {
         do {
-            std::string pType = parseTypeName();
+            string pType = parseTypeName();
             Token       pName = peek();
             expect(TokenType::IDENTIFIER, "Expected parameter name");
             auto param = makeNode(NodeType::PARAM, pName.line,
@@ -174,10 +166,10 @@ ASTNodePtr Parser::parseFuncDecl(const std::string& retType, const Token& nameTo
     return node;
 }
 
-// ─────────────────────────────────────────────
+
 //  Variable declaration
 //  varDecl → type IDENT ('=' expr)? ';'
-// ─────────────────────────────────────────────
+
 ASTNodePtr Parser::parseVarDecl(const std::string& typeName, const Token& nameTok) {
     auto node = makeNode(NodeType::VAR_DECL, nameTok.line,
                          typeName + " " + nameTok.value);
@@ -188,9 +180,9 @@ ASTNodePtr Parser::parseVarDecl(const std::string& typeName, const Token& nameTo
     return node;
 }
 
-// ─────────────────────────────────────────────
+
 //  Block  → '{' stmt* '}'
-// ─────────────────────────────────────────────
+
 ASTNodePtr Parser::parseBlock() {
     Token brace = peek();
     expect(TokenType::LBRACE, "Expected '{'");
@@ -207,9 +199,8 @@ ASTNodePtr Parser::parseBlock() {
     return block;
 }
 
-// ─────────────────────────────────────────────
+
 //  Statement dispatcher
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseStmt() {
     // Variable declaration (type keyword at start)
     if (isTypeName()) {
@@ -241,9 +232,8 @@ ASTNodePtr Parser::parseStmt() {
     }
 }
 
-// ─────────────────────────────────────────────
+
 //  if ( expr ) block ( else (ifStmt | block) )?
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseIfStmt() {
     int line = peek().line;
     advance(); // consume 'if'
@@ -262,9 +252,9 @@ ASTNodePtr Parser::parseIfStmt() {
     return node;
 }
 
-// ─────────────────────────────────────────────
+
 //  while ( expr ) block
-// ─────────────────────────────────────────────
+
 ASTNodePtr Parser::parseWhileStmt() {
     int line = peek().line;
     advance(); // consume 'while'
@@ -276,9 +266,8 @@ ASTNodePtr Parser::parseWhileStmt() {
     return node;
 }
 
-// ─────────────────────────────────────────────
+
 //  for ( init ; cond ; incr ) block
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseForStmt() {
     int line = peek().line;
     advance(); // consume 'for'
@@ -317,9 +306,7 @@ ASTNodePtr Parser::parseForStmt() {
     return node;
 }
 
-// ─────────────────────────────────────────────
 //  return expr? ;
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseReturnStmt() {
     int line = peek().line;
     advance(); // consume 'return'
@@ -331,9 +318,8 @@ ASTNodePtr Parser::parseReturnStmt() {
     return node;
 }
 
-// ─────────────────────────────────────────────
+
 //  Expression statement:  expr ;
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseExprStmt() {
     int line = peek().line;
     auto node = makeNode(NodeType::EXPR_STMT, line);
@@ -342,16 +328,13 @@ ASTNodePtr Parser::parseExprStmt() {
     return node;
 }
 
-// ─────────────────────────────────────────────
 //  Expression → assignment
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseExpr() {
     return parseAssignment();
 }
 
-// ─────────────────────────────────────────────
+
 //  Assignment: IDENT op= expr  |  logicOr
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseAssignment() {
     // Check for assignment: IDENT followed by assignment operator
     if (check(TokenType::IDENTIFIER)) {
@@ -373,9 +356,7 @@ ASTNodePtr Parser::parseAssignment() {
     return parseLogicOr();
 }
 
-// ─────────────────────────────────────────────
 //  logicOr → logicAnd ('||' logicAnd)*
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseLogicOr() {
     auto left = parseLogicAnd();
     while (check(TokenType::OP_OR)) {
@@ -388,9 +369,7 @@ ASTNodePtr Parser::parseLogicOr() {
     return left;
 }
 
-// ─────────────────────────────────────────────
 //  logicAnd → equality ('&&' equality)*
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseLogicAnd() {
     auto left = parseEquality();
     while (check(TokenType::OP_AND)) {
@@ -403,9 +382,8 @@ ASTNodePtr Parser::parseLogicAnd() {
     return left;
 }
 
-// ─────────────────────────────────────────────
+
 //  equality → relational (('=='|'!=') relational)*
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseEquality() {
     auto left = parseRelational();
     while (check(TokenType::OP_EQ) || check(TokenType::OP_NEQ)) {
@@ -418,9 +396,7 @@ ASTNodePtr Parser::parseEquality() {
     return left;
 }
 
-// ─────────────────────────────────────────────
 //  relational → additive (('<'|'>'|'<='|'>=') additive)*
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseRelational() {
     auto left = parseAdditive();
     while (check(TokenType::OP_LT)  || check(TokenType::OP_GT) ||
@@ -434,9 +410,7 @@ ASTNodePtr Parser::parseRelational() {
     return left;
 }
 
-// ─────────────────────────────────────────────
 //  additive → multiplicative (('+' | '-') multiplicative)*
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseAdditive() {
     auto left = parseMultiplicative();
     while (check(TokenType::OP_PLUS) || check(TokenType::OP_MINUS)) {
@@ -449,9 +423,8 @@ ASTNodePtr Parser::parseAdditive() {
     return left;
 }
 
-// ─────────────────────────────────────────────
+
 //  multiplicative → unary (('*'|'/'|'%') unary)*
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseMultiplicative() {
     auto left = parseUnary();
     while (check(TokenType::OP_MULTIPLY) ||
@@ -466,9 +439,7 @@ ASTNodePtr Parser::parseMultiplicative() {
     return left;
 }
 
-// ─────────────────────────────────────────────
 //  unary → ('!'|'-'|'++'|'--') unary | postfix
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parseUnary() {
 if (check(TokenType::OP_NOT)     ||
     check(TokenType::OP_MINUS)   ||
@@ -482,10 +453,7 @@ if (check(TokenType::OP_NOT)     ||
     }
     return parsePostfix();
 }
-
-// ─────────────────────────────────────────────
 //  postfix → primary ('++'|'--')?
-// ─────────────────────────────────────────────
 ASTNodePtr Parser::parsePostfix() {
     auto operand = parsePrimary();
     if (check(TokenType::OP_INC) || check(TokenType::OP_DEC)) {
@@ -497,9 +465,9 @@ ASTNodePtr Parser::parsePostfix() {
     return operand;
 }
 
-// ─────────────────────────────────────────────
+
 //  primary → literal | funcCall | ident | '(' expr ')'
-// ─────────────────────────────────────────────
+
 ASTNodePtr Parser::parsePrimary() {
     Token t = peek();
 

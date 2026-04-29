@@ -1,32 +1,24 @@
 #include "semantic.h"
 #include <sstream>
 using namespace std;
-
-// ─────────────────────────────────────────────
 //  Constructor
-// ─────────────────────────────────────────────
 SemanticAnalyzer::SemanticAnalyzer()
     : m_currentFuncReturnType("void"), m_loopDepth(0) {}
 
-// ─────────────────────────────────────────────
+
 //  Public entry point
-// ─────────────────────────────────────────────
 bool SemanticAnalyzer::analyze(ASTNode* root) {
     if (!root) return false;
     visitProgram(root);
     return !hasErrors();
 }
 
-// ─────────────────────────────────────────────
 //  Error helper
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::error(const string& msg, int line) {
     m_errors.push_back({ msg, line });
 }
 
-// ─────────────────────────────────────────────
 //  Type helpers
-// ─────────────────────────────────────────────
 bool SemanticAnalyzer::isNumeric(const string& t) {
     return t == "int" || t == "float" || t == "double" || t == "char";
 }
@@ -49,10 +41,14 @@ bool SemanticAnalyzer::typesCompatible(const string& target, const string& sourc
     return false;
 }
 
-// ─────────────────────────────────────────────
 //  Type inference: return the type of an expression node
-// ─────────────────────────────────────────────
 string SemanticAnalyzer::inferType(ASTNode* node) {
+    if (node->sval == "print") {
+    for (auto& arg : node->children) {
+        inferType(arg.get());
+    }
+    return "int";
+}
     if (!node) return "unknown";
 
     switch (node->kind) {
@@ -125,9 +121,8 @@ string SemanticAnalyzer::inferType(ASTNode* node) {
     }
 }
 
-// ─────────────────────────────────────────────
+
 //  Visitor dispatcher
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitNode(ASTNode* node) {
     if (!node) return;
     switch (node->kind) {
@@ -150,21 +145,19 @@ void SemanticAnalyzer::visitNode(ASTNode* node) {
     }
 }
 
-// ─────────────────────────────────────────────
+
 //  Program: visit all top-level declarations
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitProgram(ASTNode* node) {
     for (auto& child : node->children)
         visitNode(child.get());
 }
 
-// ─────────────────────────────────────────────
 //  Function declaration
 //  1. Register function in global scope
 //  2. Open new scope for body
 //  3. Declare all parameters
 //  4. Visit body
-// ─────────────────────────────────────────────
+
 void SemanticAnalyzer::visitFunctionDecl(ASTNode* node) {
     // node->sval = "returnType funcName"  e.g. "int main"
     // Parse return type and name from sval
@@ -240,20 +233,15 @@ void SemanticAnalyzer::visitFunctionDecl(ASTNode* node) {
     m_symTable.exitScope();
 }
 
-// ─────────────────────────────────────────────
 //  Block: open scope, visit statements, close
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitBlock(ASTNode* node) {
     m_symTable.enterScope();
     for (auto& child : node->children)
         visitNode(child.get());
     m_symTable.exitScope();
 }
-
-// ─────────────────────────────────────────────
 //  Variable declaration
 //  node->sval = "type name"
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitVarDecl(ASTNode* node) {
     size_t sp    = node->sval.find(' ');
     string vType = (sp != string::npos) ? node->sval.substr(0, sp)  : "int";
@@ -284,13 +272,10 @@ void SemanticAnalyzer::visitVarDecl(ASTNode* node) {
 
     m_symTable.declare(sym);
 }
-
-// ─────────────────────────────────────────────
 //  Assignment statement
 //  node->sval = "=" | "+=" | "-=" etc.
 //  children[0] = lhs identifier
 //  children[1] = rhs expression
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitAssign(ASTNode* node) {
     if (node->children.size() < 2) return;
 
@@ -315,12 +300,10 @@ void SemanticAnalyzer::visitAssign(ASTNode* node) {
     inferType(rhs);
 }
 
-// ─────────────────────────────────────────────
 //  If statement
 //  children[0] = condition
 //  children[1] = then-block
 //  children[2] = else-block (optional)
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitIfStmt(ASTNode* node) {
     if (node->children.empty()) return;
 
@@ -340,11 +323,10 @@ void SemanticAnalyzer::visitIfStmt(ASTNode* node) {
         visitNode(node->children[2].get());
 }
 
-// ─────────────────────────────────────────────
+
 //  While statement
 //  children[0] = condition
 //  children[1] = body block
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitWhileStmt(ASTNode* node) {
     if (node->children.empty()) return;
 
@@ -359,14 +341,11 @@ void SemanticAnalyzer::visitWhileStmt(ASTNode* node) {
         visitNode(node->children[1].get());
     m_loopDepth--;
 }
-
-// ─────────────────────────────────────────────
 //  For statement
 //  children[0] = init
 //  children[1] = condition
 //  children[2] = increment
 //  children[3] = body block
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitForStmt(ASTNode* node) {
     m_symTable.enterScope(); // for-init variables scoped to the loop
 
@@ -382,10 +361,7 @@ void SemanticAnalyzer::visitForStmt(ASTNode* node) {
 
     m_symTable.exitScope();
 }
-
-// ─────────────────────────────────────────────
 //  Return statement
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitReturnStmt(ASTNode* node) {
     string retType = "void";
 
@@ -399,9 +375,8 @@ void SemanticAnalyzer::visitReturnStmt(ASTNode* node) {
     }
 }
 
-// ─────────────────────────────────────────────
+
 //  Break / Continue — only valid inside a loop
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitBreakContinue(ASTNode* node) {
     if (m_loopDepth == 0) {
         string kw = (node->kind == NodeType::BREAK_STMT) ? "break" : "continue";
@@ -409,9 +384,7 @@ void SemanticAnalyzer::visitBreakContinue(ASTNode* node) {
     }
 }
 
-// ─────────────────────────────────────────────
 //  Expression statement — just infer/check type
-// ─────────────────────────────────────────────
 void SemanticAnalyzer::visitExprStmt(ASTNode* node) {
     if (!node->children.empty())
         inferType(node->children[0].get());

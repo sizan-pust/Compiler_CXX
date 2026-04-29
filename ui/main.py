@@ -1,9 +1,3 @@
-"""
-CompilerIDE - Python UI for C++/C Compiler
-A full-featured IDE with syntax highlighting, multi-phase compilation,
-and interactive debugging.
-"""
-
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 import os
@@ -471,6 +465,21 @@ class CompilerIDE:
 
         # Parse phase: show AST in Output tab
         if phase == "--parse":
+            try:
+                ast = json.loads(output)
+
+                pretty_ast = "Abstract Syntax Tree (AST)\n"
+                pretty_ast += "=" * 50 + "\n\n"
+                pretty_ast += self.ast_to_tree_text(ast)
+
+                self.output_text.config(state=tk.NORMAL)
+                self.output_text.delete(1.0, tk.END)
+                self.output_text.insert(1.0, pretty_ast, "info")
+                self.output_text.config(state=tk.DISABLED)
+
+            except Exception:
+                self.append_output(output, "info")
+
             self.output_tabs.select(0)
             return
 
@@ -488,7 +497,34 @@ class CompilerIDE:
         if phase == "--codegen":
             self.display_assembly(output)
             return
-                
+   
+   
+    def ast_to_tree_text(self, node, indent=""):
+        """Convert AST JSON object into readable tree text."""
+        if not isinstance(node, dict):
+            return ""
+
+        kind = node.get("kind", "Unknown")
+        value = node.get("value", "")
+        line = node.get("line", "")
+
+        label = kind
+        if value:
+            label += f" : {value}"
+        if line != "":
+            label += f"  (line {line})"
+
+        text = indent + "└── " + label + "\n"
+
+        children = node.get("children", [])
+        for child in children:
+            text += self.ast_to_tree_text(child, indent + "    ")
+
+        return text           
+
+
+
+
     def display_assembly(self, output):
         """Display assembly output"""
         self.asm_text.config(state=tk.NORMAL)

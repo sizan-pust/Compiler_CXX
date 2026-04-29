@@ -44,9 +44,26 @@ bool ICGenerator::generate(ASTNode* root) {
 //  Program — visit all top-level declarations
 // ─────────────────────────────────────────────
 void ICGenerator::genProgram(ASTNode* node) {
-    for (auto& child : node->children)
-        if (child->kind == NodeType::FUNCTION_DECL)
+    bool hasFunction = false;
+
+    for (auto& child : node->children) {
+        if (child->kind == NodeType::FUNCTION_DECL) {
+            hasFunction = true;
             genFuncDecl(child.get());
+        }
+    }
+
+    // Mini-C mode: top-level statements
+    if (!hasFunction) {
+        emit(TACOp::FUNC_BEGIN, "main", "", "", node->line);
+
+        for (auto& child : node->children) {
+            genStmt(child.get());
+        }
+
+        emit(TACOp::RETURN, "0", "", "", node->line);
+        emit(TACOp::FUNC_END, "main", "", "", node->line);
+    }
 }
 
 // ─────────────────────────────────────────────
